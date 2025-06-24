@@ -65,8 +65,30 @@ router.post('/vote', async (req, res) => {
   }
 });
 
+// DELETE /api/vote/:id - Delete a vote by ID  for ADMIN_PANEL
+router.delete('/vote/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await Voting.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({ error: 'Vote not found' });
+    }
+
+    res
+      .status(200)
+      .json({ message: 'Vote deleted successfully', status: 'ok' });
+  } catch (error) {
+    res.status(500).json({
+      error: 'Failed to delete vote',
+      details: error.message,
+    });
+  }
+});
+
 // http://localhost:5000/api/votes?status=1&search_data=John
-// GET /api/votes - Fetch all votes
+// GET /api/votes - Fetch all votes for ADMIN_PANEL
 router.get('/votes', async (req, res) => {
   try {
     const { search_data = '', status } = req.query;
@@ -84,8 +106,6 @@ router.get('/votes', async (req, res) => {
     }
 
     const votes = await Voting.find(query);
-    console.log(query, 'query');
-    console.log(votes, 'votes');
 
     res.status(200).json(votes);
   } catch (error) {
@@ -95,29 +115,6 @@ router.get('/votes', async (req, res) => {
     });
   }
 });
-router.get('/filter', async (req, res) => {
-  const { type } = req.query;
-
-  let filter = {};
-
-  if (type === 'girl') {
-    filter.firstOption = 'girl';
-  } else if (type === 'boy') {
-    filter.firstOption = 'boy';
-  } // else: no filter → return all
-
-  try {
-    const results = await Voting.find(filter);
-    res.status(200).json(results);
-  } catch (error) {
-    res.status(500).json({
-      error: 'Failed to retrieve filtered data.',
-      details: error.message,
-    });
-  }
-});
-
-const COUNTDOWN_DURATION = 1000000;
 
 router.get('/remaining-time', async (req, res) => {
   try {
@@ -133,7 +130,7 @@ router.get('/remaining-time', async (req, res) => {
     const now = Date.now();
     const startedAt = new Date(countdown.startedAt).getTime();
     const elapsed = now - startedAt;
-    const remaining = Math.max(0, COUNTDOWN_DURATION - elapsed);
+    const remaining = Math.max(0, process.env.COUNTDOWN_DURATION - elapsed);
 
     res.json({ remaining_time_milliseconds: remaining });
   } catch (error) {
