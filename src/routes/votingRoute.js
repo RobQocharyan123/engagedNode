@@ -65,10 +65,28 @@ router.post('/vote', async (req, res) => {
   }
 });
 
+// http://localhost:5000/api/votes?status=1&search_data=John
 // GET /api/votes - Fetch all votes
 router.get('/votes', async (req, res) => {
   try {
-    const votes = await Voting.find();
+    const { search_data = '', status } = req.query;
+
+    const query = {};
+
+    if (status === '2') {
+      query.firstOption = 'boy';
+    } else if (status === '3') {
+      query.firstOption = 'girl';
+    }
+
+    if (search_data) {
+      query.name = { $regex: search_data, $options: 'i' };
+    }
+
+    const votes = await Voting.find(query);
+    console.log(query, 'query');
+    console.log(votes, 'votes');
+
     res.status(200).json(votes);
   } catch (error) {
     res.status(500).json({
@@ -77,7 +95,6 @@ router.get('/votes', async (req, res) => {
     });
   }
 });
-
 router.get('/filter', async (req, res) => {
   const { type } = req.query;
 
