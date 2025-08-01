@@ -1,9 +1,9 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import connectDB from './config/db.js';
-import router from './routes/votingRoute.js';
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
+import connectDB from "./config/db.js";
+import router from "./routes/votingRoute.js";
 dotenv.config();
 connectDB();
 const app = express();
@@ -14,7 +14,7 @@ app.use(express.json());
 
 // gRr9lhBQdNqcLKzp  its password my db if its not work
 
-app.use('/api', router);
+app.use("/api", router);
 // app.use('/api', router);
 // app.use('/api', router);
 // app.get('/remaining-time', (req, res) => {
