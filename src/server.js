@@ -15,8 +15,8 @@ app.use(express.json());
 // gRr9lhBQdNqcLKzp  its password my db if its not work
 
 app.use('/api', router);
-app.use('/api', router);
-app.use('/api', router);
+// app.use('/api', router);
+// app.use('/api', router);
 // app.get('/remaining-time', (req, res) => {
 //   const now = Date.now();
 //   const elapsed = now - countdownStart;
