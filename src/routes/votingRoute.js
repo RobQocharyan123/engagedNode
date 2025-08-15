@@ -104,10 +104,11 @@ router.get('/votes', async (req, res) => {
     if (search_data) {
       query.name = { $regex: search_data, $options: 'i' };
     }
+    const countdown = await Countdown.findOne();
 
     const votes = await Voting.find(query);
 
-    res.status(200).json(votes);
+    res.status(200).json({success:"ok", date: countdown ? countdown.targetAt : null, votes});
   } catch (error) {
     res.status(500).json({
       error: 'Failed to retrieve votes.',
@@ -116,27 +117,56 @@ router.get('/votes', async (req, res) => {
   }
 });
 
-router.get('/remaining-time', async (req, res) => {
+// POST /date - convert date to milliseconds and return
+
+router.post('/date', async (req, res) => {
+  const { date } = req.body;
+
+  if (!date) {
+    return res.status(400).json({ error: "Date can't be empty" });
+  }
+
+  const targetDate = new Date(date);
+  if (isNaN(targetDate)) {
+    return res.status(400).json({ error: "Invalid date format" });
+  }
+
   try {
-    // Get countdown document (create if it doesn't exist)
     let countdown = await Countdown.findOne();
 
     if (!countdown) {
-      // First time setup
-      countdown = new Countdown({ startedAt: new Date() });
-      await countdown.save();
+      countdown = new Countdown({ targetAt: targetDate });
+    } else {
+      countdown.targetAt = targetDate; // update if already exists
     }
 
-    const now = Date.now();
-    const startedAt = new Date(countdown.startedAt).getTime();
-    const elapsed = now - startedAt;
-    const remaining = Math.max(0, process.env.COUNTDOWN_DURATION - elapsed);
+    await countdown.save();
 
-    res.json({ remaining_time_milliseconds: remaining });
+    res.status(200).json({ success: "ok" }); // just return OK
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to submit date', details: error.message });
+  }
+});
+
+// GET /remaining-time - return milliseconds remaining
+router.get('/remaining-time', async (req, res) => {
+  try {
+    const countdown = await Countdown.findOne();
+    if (!countdown) {
+      return res.status(404).json({ error: "Countdown not set" });
+    }
+
+    const remaining = Math.max(0, countdown.targetAt.getTime() - Date.now());
+
+    res.json({ success: "ok",remaining_time_milliseconds: remaining });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to calculate remaining time' });
   }
 });
 
-export default router;
+
+
+
+export default router

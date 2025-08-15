@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 const countdownSchema = new mongoose.Schema({
-  startedAt: {
+  targetAt: {
     type: Date,
-    required: true,
+    required: true, // store the date sent from frontend
   },
 });
 
